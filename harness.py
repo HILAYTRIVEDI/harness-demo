@@ -1,45 +1,48 @@
 """
-Build Your Own Agent Harness - V3: Tools + The Agent Loop
+Build Your Own Agent Harness - V4: System Prompt + Streaming
 
-V2 could only talk. V3 can act.
-
-The agent loop:
-  1. send history + tool schemas to the model
-  2. if the model answers with tool_use blocks, the harness runs them
-  3. send the tool results back as a user message
-  4. repeat until the model stops asking for tools (stop_reason == "end_turn")
-
-One user message can now trigger many model calls.
+New in V4:
+  - prompts.py builds a system prompt: the agent's role, rules and environment
+  - responses stream token by token, so the user sees progress immediately
 """
 
 import json
 
 from config import MODEL, client
+from prompts import build_system_prompt
 from tools import TOOLS, run_tool
 
-MAX_TOKENS = 16000
+MAX_TOKENS = 64000  # streaming avoids HTTP timeouts, so we can allow long replies
 
 
-def agent_turn(messages):
-    """Run the agent loop until the model is done with this user request."""
+def call_model(system, messages):
+    """Stream one model response to the terminal and return the final message."""
+    with client.messages.stream(
+        model=MODEL,
+        max_tokens=MAX_TOKENS,
+        system=system,
+        tools=TOOLS,
+        messages=messages,
+    ) as stream:
+        printed_header = False
+        for text in stream.text_stream:
+            if not printed_header:
+                print("\nclaude > ", end="", flush=True)
+                printed_header = True
+            print(text, end="", flush=True)
+        if printed_header:
+            print("\n")
+        return stream.get_final_message()
+
+
+def agent_turn(system, messages):
     while True:
-        response = client.messages.create(
-            model=MODEL,
-            max_tokens=MAX_TOKENS,
-            tools=TOOLS,
-            messages=messages,
-        )
+        response = call_model(system, messages)
         messages.append({"role": "assistant", "content": response.content})
-
-        for block in response.content:
-            if block.type == "text":
-                print(f"\nclaude > {block.text}\n")
 
         if response.stop_reason != "tool_use":
             return
 
-        # The model asked for one or more tools. Run them all, then send
-        # every result back together in ONE user message.
         tool_results = []
         for block in response.content:
             if block.type != "tool_use":
@@ -48,7 +51,7 @@ def agent_turn(messages):
             output = run_tool(block.name, block.input)
             tool_results.append({
                 "type": "tool_result",
-                "tool_use_id": block.id,  # links the result to the request
+                "tool_use_id": block.id,
                 "content": output,
             })
 
@@ -56,8 +59,9 @@ def agent_turn(messages):
 
 
 def main():
+    system = build_system_prompt()  # built once, stays the same all session
     messages = []
-    print("V3 harness - type 'exit' to quit\n")
+    print("V4 harness - type 'exit' to quit\n")
 
     while True:
         user_input = input("you > ").strip()
@@ -67,7 +71,7 @@ def main():
             continue
 
         messages.append({"role": "user", "content": user_input})
-        agent_turn(messages)
+        agent_turn(system, messages)
 
 
 if __name__ == "__main__":
