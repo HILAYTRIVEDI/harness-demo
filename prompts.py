@@ -28,6 +28,17 @@ Environment:
 """
 
 
+# Used by compaction in V6: the model writes the summary that replaces the
+# conversation, so it must keep everything needed to carry on the work.
+COMPACT_PROMPT = """Our conversation is getting long, so it will be replaced by a summary that \
+you write now. Do not call any tools. Write a summary that lets you continue the work \
+without the original messages. Include:
+- what the user asked for, and any preferences or constraints they gave
+- what has been done so far: files read, created or changed, commands run and their results
+- the current state, and anything still unfinished or planned next
+"""
+
+
 def build_system_prompt():
     return SYSTEM_PROMPT.format(
         cwd=os.getcwd(),
