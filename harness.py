@@ -6,6 +6,8 @@ New in V5:
   - a turn limit, so a confused agent can't loop forever
   - every stop_reason is handled (tool_use, end_turn, max_tokens, refusal)
   - API errors and Ctrl+C roll the conversation back instead of crashing
+  - persistent memory: MEMORY.md is loaded into the system prompt at startup,
+    and the `remember` tool appends to it (see memory.py)
 """
 
 import json

@@ -10,10 +10,13 @@ V5 adds guard rails, because the model's tool inputs are untrusted:
   - shell commands get a timeout
   - long outputs are truncated so they don't flood the context window
   - errors are returned to the model instead of crashing the harness
+It also adds `remember`, which saves a fact to persistent memory (see memory.py).
 """
 
 import subprocess
 from pathlib import Path
+
+from memory import remember
 
 WORKSPACE = Path.cwd().resolve()
 BASH_TIMEOUT = 60          # seconds
@@ -135,6 +138,18 @@ TOOLS = [
             "required": ["command"],
         },
     },
+    {
+        "name": "remember",
+        "description": "Save one short fact to persistent memory so you still know it in future sessions. "
+                       "Use it for lasting user preferences and project facts, not for temporary task details.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "fact": {"type": "string", "description": "One self-contained sentence."},
+            },
+            "required": ["fact"],
+        },
+    },
 ]
 
 
@@ -148,6 +163,7 @@ TOOL_FUNCTIONS = {
     "write_file": write_file,
     "edit_file": edit_file,
     "run_bash": run_bash,
+    "remember": remember,
 }
 
 

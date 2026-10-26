@@ -10,10 +10,16 @@ import datetime
 import os
 import platform
 
+from memory import load_memory
+
 SYSTEM_PROMPT = """You are a coding agent running inside a custom harness on the user's machine.
 
 You can inspect and change the user's project with these tools: list_files, \
 read_file, write_file, edit_file and run_bash.
+
+You have persistent memory: when the user tells you a lasting preference or fact \
+about them or the project, save it with the remember tool. It is loaded below in \
+every future session.
 
 How to work:
 - Look before you change: read the relevant files before editing them.
@@ -29,8 +35,12 @@ Environment:
 
 
 def build_system_prompt():
-    return SYSTEM_PROMPT.format(
+    prompt = SYSTEM_PROMPT.format(
         cwd=os.getcwd(),
         os_name=f"{platform.system()} {platform.release()}",
         date=datetime.date.today().isoformat(),
     )
+    memory = load_memory()
+    if memory:
+        prompt += f"\nMemory from previous sessions (MEMORY.md):\n{memory}\n"
+    return prompt

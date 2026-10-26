@@ -12,7 +12,7 @@ the same Messages API format.
 | `v2` | **The chat loop**: conversation history, because the model is stateless | `harness.py` |
 | `v3` | **Tools + the agent loop**: the model asks, the harness executes, results go back | `+ tools.py` |
 | `v4` | **System prompt + streaming**: tell the agent who/where it is; print tokens live | `+ prompts.py` |
-| `v5` | **Safety & reliability**: permission prompts, sandboxed paths, timeouts, turn limits, error handling | all |
+| `v5` | **Safety, reliability & memory**: permission prompts, sandboxed paths, timeouts, turn limits, error handling, a persistent `MEMORY.md` file | `+ memory.py` |
 | `v6` | **Context management**: token tracking, auto-compaction, slash commands, saved sessions | all |
 
 Check out the branches in order (`git checkout v1`, then `v2`, and so on) and
