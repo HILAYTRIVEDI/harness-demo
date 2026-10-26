@@ -47,7 +47,7 @@ def ask_permission(name, tool_input):
     """Human in the loop: the user approves risky tool calls."""
     if name not in DANGEROUS_TOOLS or name in always_allowed:
         return True
-    preview = tool_input.get("command") or tool_input.get("path")
+    preview = tool_input.get("command") or tool_input.get("path") or tool_input.get("fact")
     answer = input(f"  Allow {name}: {preview}?  [y]es / [n]o / [a]lways > ").strip().lower()
     if answer == "a":
         always_allowed.add(name)
