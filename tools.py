@@ -23,7 +23,8 @@ BASH_TIMEOUT = 60          # seconds
 MAX_OUTPUT_CHARS = 20_000  # roughly 5k tokens
 
 # Tools that change things. The harness asks the user before running these.
-DANGEROUS_TOOLS = {"write_file", "edit_file", "run_bash"}
+# remember is here too: whatever it saves is fed into every future session.
+DANGEROUS_TOOLS = {"write_file", "edit_file", "run_bash", "remember"}
 
 
 class ToolError(Exception):
